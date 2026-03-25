@@ -27,6 +27,7 @@ COLLECTION_NAME = os.environ.get('COLLECTION_NAME', "urls")
 FLASK_HOST = os.environ.get('FLASK_HOST', '0.0.0.0')
 FLASK_PORT = int(os.environ.get('FLASK_PORT', 5000))
 FLASK_DEBUG = bool(int(os.environ.get('FLASK_DEBUG', 0)))
+ENV = os.environ.get('ENV', 'production')
 SECRET_KEY = os.environ.get('SECRET_KEY', 'lean-secret-key-2024')
 LINK_SALT = os.environ.get('LINK_SALT', 'convict the epstein class')
 

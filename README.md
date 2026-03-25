@@ -9,6 +9,7 @@ A containerized URL shortener and cleaner designed for privacy and minimal overh
     - Meta-refresh based bot redirection with `no-referrer` enforcement.
     - Zero server or application logs.
     - **Salted Hashing**: Deterministic short codes use a secret salt (`LINK_SALT`) to prevent brute-force discovery or reversal of shortened URLs.
+    - **IP Redaction**: Automatically scrubs IPv4 addresses from all application logs when running in production mode (`ENV=production`).
 - **Smart Cleaning**: 
     - Automated stripping of `utm_*`, `fbclid`, `_ga`, `_gid`, `msclkid`, and other common tracking parameters.
     - Normalization of hosts and paths.
@@ -48,9 +49,14 @@ A containerized URL shortener and cleaner designed for privacy and minimal overh
 ## Configuration
 
 Settings are managed via a tiered environment file system:
-- `.env.docker`: Tracked default settings (Ports, Database).
+- `.env.docker`: Tracked default settings (Ports, Database, ENV).
 - `.env.docker.local`: Local overrides and secrets (Untracked).
 - `.env.production`: Production secrets (Exclusive priority).
+
+### Environment Variables
+- `ENV`: Set to `production` (default) or `development`. Controls privacy features like IP redaction.
+- `FLASK_DEBUG`: `1` for debug mode, `0` for standard operation.
+- `LINK_SALT`: Secret salt for deterministic short codes.
 
 ## Testing
 

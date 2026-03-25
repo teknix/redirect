@@ -7,7 +7,7 @@ from pymongo import MongoClient
 from config import (
     MONGO_URI, DATABASE_NAME, COLLECTION_NAME, FLASK_HOST, 
     FLASK_PORT, FLASK_DEBUG, SECRET_KEY, MAX_REDIRECTS, 
-    SHORT_CODE_LENGTH, RESOLVE_STOP_KEYWORDS, LINK_SALT
+    SHORT_CODE_LENGTH, RESOLVE_STOP_KEYWORDS, LINK_SALT, ENV
 )
 from urllib.parse import urlparse, parse_qsl, urlencode, urlunparse, urljoin
 
@@ -16,8 +16,30 @@ app.config['SECRET_KEY'] = SECRET_KEY
 
 # Silencing Flask's default logging to maintain "zero logs" requirement
 import logging
+import re
+
+class IPRedactorFormatter(logging.Formatter):
+    """Redacts IP addresses from log messages."""
+    IP_PATTERN = re.compile(r'\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b')
+    
+    def format(self, record):
+        original_msg = super().format(record)
+        if ENV == 'production':
+            return self.IP_PATTERN.sub('[REDACTED]', original_msg)
+        return original_msg
+
+# Setup logging
+if ENV == 'production':
+    # Apply redactor to the root logger if in production
+    handler = logging.StreamHandler()
+    handler.setFormatter(IPRedactorFormatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+    logging.getLogger().handlers = [handler]
+
 log = logging.getLogger('werkzeug')
 log.setLevel(logging.ERROR)
+if ENV == 'production':
+    for h in log.handlers:
+        h.setFormatter(IPRedactorFormatter())
 
 # MongoDB Setup
 client = MongoClient(MONGO_URI)
