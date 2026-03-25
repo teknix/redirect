@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    ports:
+      - "${APP_PORT:-5005}:5000"
+    env_file:
+      - .env.docker
+    # Note: .env.production or .env.docker.local can be added here if needed, 
+    # but the python code loads them directly from the filesystem if mapped.
+    # We pass the tracked defaults via env_file for convenience.
+    environment:
+      - FLASK_DEBUG=${FLASK_DEBUG:-0}
+    depends_on:
+      - mongo
+
+  mongo:
+    image: mongo:latest
+    volumes:
+      - mongo_data:/data/db
+
+volumes:
+  mongo_data:

@@ -1,0 +1,5 @@
+# Production (exclusive if exists)
+.env.production
+
+# Local developer secrets (untracked)
+.env.docker.local
