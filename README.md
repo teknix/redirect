@@ -6,10 +6,14 @@ A containerized URL shortener and cleaner designed for privacy and minimal overh
 
 - **Privacy**: 
     - Implementation of `Referrer-Policy: no-referrer` on all redirects.
+    - Meta-refresh based bot redirection with `no-referrer` enforcement.
     - Zero server or application logs.
+    - **Salted Hashing**: Deterministic short codes use a secret salt (`LINK_SALT`) to prevent brute-force discovery or reversal of shortened URLs.
 - **Smart Cleaning**: 
-    - Automated stripping of `utm_*`, `fbclid`, and other common tracking parameters.
+    - Automated stripping of `utm_*`, `fbclid`, `_ga`, `_gid`, `msclkid`, and other common tracking parameters.
     - Normalization of hosts and paths.
+- **Deep Privacy Mode**: 
+    - Optional "Deep Privacy" checkbox allows users to skip server-side link resolution and preview generation. This prevents the shortener's IP from touching the destination before the user does.
 - **Smart Stop**: 
     - Redirect resolution terminates before reaching authentication gates (e.g., login pages).
 - **Link Previews**: 

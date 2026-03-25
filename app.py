@@ -7,7 +7,7 @@ from pymongo import MongoClient
 from config import (
     MONGO_URI, DATABASE_NAME, COLLECTION_NAME, FLASK_HOST, 
     FLASK_PORT, FLASK_DEBUG, SECRET_KEY, MAX_REDIRECTS, 
-    SHORT_CODE_LENGTH, RESOLVE_STOP_KEYWORDS
+    SHORT_CODE_LENGTH, RESOLVE_STOP_KEYWORDS, LINK_SALT
 )
 from urllib.parse import urlparse, parse_qsl, urlencode, urlunparse, urljoin
 
@@ -33,7 +33,8 @@ TRACKING_PARAMS = {
     "gclid", "dclid", "fbclid", "mc_cid", "mc_eid", "igshid", "mkt_tok",
     "yclid", "_hsenc", "_hsmi", "vero_id", "rb_clickid", "s_cid",
     "cmpid", "campaign_id", "ad_id", "adset_id", "ref", "ref_src",
-    "source", "si", "spm"
+    "source", "si", "spm", "_ga", "_gid", "msclkid", "ttcid", "twclid",
+    "li_fat_id", "gbraid", "wbraid", "_ke"
 }
 
 def resolve_url(url, timeout=10):
@@ -135,8 +136,9 @@ def clean_url(url):
         return url
 
 def generate_short_code(url, length=8):
-    """Create a deterministic short code from the URL."""
-    return hashlib.sha256(url.encode()).hexdigest()[:length]
+    """Create a salted deterministic short code from the URL."""
+    salted_url = f"{url}{LINK_SALT}"
+    return hashlib.sha256(salted_url.encode()).hexdigest()[:length]
 
 @app.route('/')
 def index():
@@ -159,6 +161,10 @@ def index():
     <form action="/shorten" method="POST">
         <h2>Clean & Shorten</h2>
         <input type="text" name="url" placeholder="Paste URL here..." required>
+        <div style="margin-bottom: 1.5rem; display: flex; align-items: center; font-size: 0.9rem; color: #aaa;">
+            <input type="checkbox" name="private_mode" id="private_mode" style="margin: 0 0.5rem 0 0; width: auto;">
+            <label for="private_mode">Deep Privacy (Skip link resolution & preview)</label>
+        </div>
         <button type="submit">Shorten</button>
     </form>
 </body>
@@ -176,12 +182,25 @@ def shorten():
     if not target_url:
         return jsonify({"error": "URL is required"}), 400
         
-    # Add protocol if missing
     if not target_url.startswith(('http://', 'https://')):
         target_url = f"https://{target_url}"
     
+    private_mode = False
+    if request.is_json:
+        private_mode = bool(data.get('private_mode', False))
+    else:
+        private_mode = bool(request.form.get('private_mode'))
+
     # 1. Resolve final destination and metadata
-    resolved_url, metadata = resolve_url(target_url)
+    if private_mode:
+        resolved_url = target_url
+        metadata = {
+            "title": "Private Link", 
+            "description": "This link was created with extra privacy. Metadata resolution was skipped.", 
+            "image": ""
+        }
+    else:
+        resolved_url, metadata = resolve_url(target_url)
     
     # 2. Clean tracking data
     cleaned_url = clean_url(resolved_url)
@@ -278,6 +297,7 @@ def do_redirect(code_or_url):
     <meta property="og:image" content="{meta.get('image', '')}">
     <meta property="og:url" content="{target}">
     <meta property="og:type" content="website">
+    <meta name="referrer" content="no-referrer">
     <meta http-equiv="refresh" content="0; url={target}">
 </head>
 <body>
