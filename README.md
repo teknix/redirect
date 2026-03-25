@@ -12,8 +12,8 @@ A containerized URL shortener and cleaner designed for privacy and minimal overh
 - **Smart Cleaning**: 
     - Automated stripping of `utm_*`, `fbclid`, `_ga`, `_gid`, `msclkid`, and other common tracking parameters.
     - Normalization of hosts and paths.
-- **Deep Privacy Mode**: 
-    - Optional "Deep Privacy" checkbox allows users to skip server-side link resolution and preview generation. This prevents the shortener's IP from touching the destination before the user does.
+- **Privacy Mode**: 
+    - Optional "Privacy" checkbox allows users to skip server-side link resolution and preview generation. This prevents the shortener's IP from touching the destination before the user does.
 - **Smart Stop**: 
     - Redirect resolution terminates before reaching authentication gates (e.g., login pages).
 - **Link Previews**: 
